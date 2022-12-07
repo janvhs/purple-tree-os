@@ -1,0 +1,97 @@
+name: build-purple-tree-os
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Midnight at UTC
+  push:
+    branches: [ "main" ]
+    # Publish semver tags as releases.
+    tags: [ '*.*.*' ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_NAME: purple-tree
+  IMAGE_TAGS: latest ${{ github.sha }}
+
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Install the cosign tool except on PR
+      # https://github.com/sigstore/cosign-installer
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@f3c664df7af409cb4873aa5068053ba9d61a57b6 #v2.6.0
+        with:
+          cosign-release: 'v1.11.0'
+
+      # Login against a OCI registry except on PR
+      # https://github.com/redhat-actions/podman-login
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: redhat-actions/podman-login@v1
+        with:
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+          registry: ${{ env.REGISTRY }}
+
+      # Build OCI image using Buildah action
+      - name: Build ${{ env.IMAGE_NAME }}
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          containerfiles: |
+            ./Containerfile
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ env.IMAGE_TAGS }}
+          oci: true
+      
+      # Push the image to the registry except on PR
+      - name: Push OCI image
+        id: push-image
+        uses: redhat-actions/push-to-registry@v2
+        if: github.event_name != 'pull_request'
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ${{ env.REGISTRY }}
+
+      # Sign the resulting OCI image digest except on PRs.
+      # This will only write to the public Rekor transparency log when the OCI
+      # repository is public to avoid leaking data.  If you would like to publish
+      # transparency data even for private images, pass --force to cosign below.
+      # https://github.com/sigstore/cosign
+      - name: Sign the published image
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        # This step uses the identity token to provision an ephemeral certificate
+        # against the sigstore community Fulcio instance.
+        run: echo "${{ steps.build-image.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.push-image.outputs.digest }}
+      
+      # Echo the push output except on PRs
+      - name: Echo push
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          echo "${{ toJSON(steps.push-image.outputs) }}"
