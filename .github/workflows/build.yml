@@ -41,9 +41,7 @@ jobs:
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
         if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@f3c664df7af409cb4873aa5068053ba9d61a57b6 #v2.6.0
-        with:
-          cosign-release: 'v1.11.0'
+        uses: sigstore/cosign-installer@v2.8.1
 
       # Login against a OCI registry except on PR
       # https://github.com/redhat-actions/podman-login
@@ -87,8 +85,7 @@ jobs:
           COSIGN_EXPERIMENTAL: "true"
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
-        # Replace : with =
-        run: echo "${{ steps.build-image.outputs.tags }}" | xargs -I {} cosign sign {}@$(echo "${{ steps.push-image.outputs.digest }}" | sed "s/sha256:/sha256=/g")
+        run: cosign sign ghcr.io/${{ github.repository }}@${{ steps.push-image.outputs.digest }}
       
       # Echo the push output except on PRs
       - name: Echo push
