@@ -17,7 +17,7 @@ on:
 
 env:
   # Use docker.io for Docker Hub if empty
-  # REGISTRY: ghcr.io
+  REGISTRY: ghcr.io
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   # github.repository as <account>/<repo>
   IMAGE_NAME: purple-tree
