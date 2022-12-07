@@ -87,7 +87,8 @@ jobs:
           COSIGN_EXPERIMENTAL: "true"
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
-        run: echo "${{ steps.build-image.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.push-image.outputs.digest }}
+        # Replace : with =
+        run: echo "${{ steps.build-image.outputs.tags }}" | xargs -I {} cosign sign {}@$(echo "${{ steps.push-image.outputs.digest }}" | sed "s/sha256:/sha256=/g")
       
       # Echo the push output except on PRs
       - name: Echo push
