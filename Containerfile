@@ -10,6 +10,7 @@ RUN rpm-ostree install --assumeyes gnome-console
 RUN rpm-ostree override remove gnome-terminal gnome-terminal-nautilus
 
 COPY ./scripts/kgx-gnome-terminal-wrapper /usr/bin/gnome-terminal
+RUN chmod a+x /usr/bin/gnome-terminal
 
 # RUN rpm-ostree override remove gnome-terminal gnome-terminal-nautilus && \
 #     rpm-ostree install gnome-tweaks distrobox zsh

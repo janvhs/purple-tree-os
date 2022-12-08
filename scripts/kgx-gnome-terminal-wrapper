@@ -1,4 +1,4 @@
-#! /usr/bin/env sh
+#! /usr/bin/sh
 
 # Author:       Jan Fooken (git.bode.fun)
 # Name:         kgx-gnome-terminal-wrapper
@@ -8,5 +8,6 @@
 # License:      GNU General Public License v3.0
 
 # Description:  This script is a wrapper for kgx to make it work with gnome-terminal.
+#               This can be removed when gio supports kgx.
 
 /usr/bin/kgx "$@"
