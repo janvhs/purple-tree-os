@@ -1,0 +1,12 @@
+#! /usr/bin/env sh
+
+# Author:       Jan Fooken (git.bode.fun)
+# Name:         kgx-gnome-terminal-wrapper
+# Date:         08.12.2022
+# Last update:  08.12.2022
+# Version:      0.1
+# License:      GNU General Public License v3.0
+
+# Description:  This script is a wrapper for kgx to make it work with gnome-terminal.
+
+/usr/bin/kgx "$@"
