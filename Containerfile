@@ -6,8 +6,10 @@ FROM ghcr.io/cgwalters/fedora-silverblue:37
 #     rpm-ostree install --assumeyes gnome-tweaks distrobox zsh
 RUN rpm-ostree install --assumeyes gnome-console
 
-# Remove gnome-terminal and add a wrapper for gnome-terminal
+# Remove gnome-terminal
 RUN rpm-ostree override remove --assumeyes gnome-terminal gnome-terminal-nautilus
+RUN rm -rf /var/usrlocal/bin/gnome-terminal
+
 COPY ./scripts/kgx-gnome-terminal-wrapper /usr/local/bin/gnome-terminal
 
 # RUN rpm-ostree override remove gnome-terminal gnome-terminal-nautilus && \
